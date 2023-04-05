@@ -14,7 +14,7 @@ DEFAULT_OUTPUT_NAME = "images-index.html"
 
 app_name = "index_images.py"
 
-app_version = "230316.1"
+app_version = "230405.1"
 
 app_title = f"{app_name} (v.{app_version})"
 
@@ -303,12 +303,12 @@ def main(argv):
 
     html.append(html_tail())
 
-    # out_path = scan_path / "images-index.html"
-
     print(f"Writing '{opts.html_path}'")
 
     opts.html_path.write_text("".join(html))
 
+    return 0
+
 
 if __name__ == "__main__":
-    main(sys.argv)
+    sys.exit(main(sys.argv))
