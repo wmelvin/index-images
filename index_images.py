@@ -1,30 +1,32 @@
 #!/usr/bin/env python3
 
+from __future__ import annotations
+
 import argparse
 import sys
-
-from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
-from typing import List
-
+from typing import NamedTuple
 
 DEFAULT_OUTPUT_NAME = "images-index.html"
 
 app_name = "index_images.py"
 
-app_version = "230405.1"
+app_version = "2024.01.1"
 
-app_title = f"{app_name} (v.{app_version})"
+app_title = f"{app_name} (v{app_version})"
 
 run_dt = datetime.now()
 
 
-AppOptions = namedtuple("AppOptions", "scan_path, html_path, do_toc")
+class AppOptions(NamedTuple):
+    scan_path: Path
+    html_path: Path
+    do_toc: bool
 
 
-def get_args(argv):
+def get_args(arglist=None):
     ap = argparse.ArgumentParser(description="Create an HTML index of images.")
 
     ap.add_argument(
@@ -63,11 +65,11 @@ def get_args(argv):
         help="Do not include a Contents section listing links to each image.",
     )
 
-    return ap.parse_args(argv[1:])
+    return ap.parse_args(arglist)
 
 
-def get_opts(argv) -> AppOptions:
-    args = get_args(argv)
+def get_opts(arglist=None) -> AppOptions:
+    args = get_args(arglist)
 
     scan_path = Path(args.dir_name).expanduser().resolve()
 
@@ -223,16 +225,16 @@ def html_img_div_w_mouseover(
     ).format(img_rel, tag, img_id, over_rel)
 
 
-def has_base_image(img_path: Path, image_list: List[Path]) -> bool:
+def has_base_image(img_path: Path, image_list: list[Path]) -> bool:
     s = img_path.stem
-    assert s.endswith("-over")
+    assert s.endswith("-over")  # noqa: S101
     s = s[:-5]
     return any(p.stem == s for p in image_list)
 
 
-def get_mouseover_image(img_path: Path, image_list: List[Path]) -> Path:
+def get_mouseover_image(img_path: Path, image_list: list[Path]) -> Path:
     s = img_path.stem
-    assert not s.endswith("-over")
+    assert not s.endswith("-over")  # noqa: S101
     s = s + "-over"
     for p in image_list:
         if p.stem == s:
@@ -240,10 +242,10 @@ def get_mouseover_image(img_path: Path, image_list: List[Path]) -> Path:
     return None
 
 
-def main(argv):
+def main(arglist=None):
     print(f"\n{app_title}\n")
 
-    opts = get_opts(argv)
+    opts = get_opts(arglist)
 
     dir_left = len(str(opts.scan_path)) + 1
 
@@ -296,9 +298,7 @@ def main(argv):
             html.append(html_img_div(img_name, img_rel, i))
         else:
             html.append(
-                html_img_div_w_mouseover(
-                    img_name, img_rel, i, mouseover_img, dir_left
-                )
+                html_img_div_w_mouseover(img_name, img_rel, i, mouseover_img, dir_left)
             )
 
     html.append(html_tail())
@@ -311,4 +311,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    main()
