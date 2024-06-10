@@ -103,8 +103,7 @@ def test_scan_images_wo_recurse(fake_image_and_output_paths: tuple[Path, Path]):
 
 @pytest.mark.parametrize("recurse_arg", ["-r", "--recurse"])
 def test_scan_images_with_recurse(
-    fake_image_and_output_paths: tuple[Path, Path],
-    recurse_arg: str
+    fake_image_and_output_paths: tuple[Path, Path], recurse_arg: str
 ):
     img_path, out_path = fake_image_and_output_paths
     args = [str(img_path), "-d", str(out_path), recurse_arg]

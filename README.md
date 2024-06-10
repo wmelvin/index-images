@@ -1,6 +1,6 @@
-# index_images.py
+# index_images
 
-**index_images.py** is a stand-alone Python script (it only uses standard library modules) that scans a directory for image files and creates a HTML index of any found images. Currently the script only looks for `*.jpg` and `*.png` files.
+**index_images** is a Python script that scans a directory for image files and creates a HTML index of any found images. Currently the script only looks for `*.jpg` and `*.png` files.
 
 ### Mouseover Images
 
@@ -27,7 +27,7 @@ This [images-index.html](https://wmelvin.github.io/examples/index_images/images-
 ### Command-line Usage
 
 ```
-usage: index_images.py [-h] [-n OUT_NAME] [-d OUT_DIR] [--no-list] [dir_name]
+usage: index_images [-h] [-r] [-n OUT_NAME] [-d OUT_DIR] [--no-list] [dir_name]
 
 Create an HTML index of images.
 
@@ -36,8 +36,10 @@ positional arguments:
                         and *.jpg). Optional. If not specified, the current
                         working directory is scanned.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
+  -r, --recurse         Recursively scan subdirectories for image files.
+                        Optional.
   -n OUT_NAME, --name OUT_NAME
                         Name of the output HTML file. Optional. If not
                         specified, the file is named 'images-index.html'.
