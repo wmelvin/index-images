@@ -13,7 +13,7 @@ DEFAULT_OUTPUT_NAME = "images-index.html"
 
 app_name = "index_images"
 
-__version__ = "2024.06.1"
+__version__ = "2024.06.2"
 
 app_title = f"{app_name} (v{__version__})"
 
@@ -24,6 +24,7 @@ class AppOptions(NamedTuple):
     scan_path: Path
     html_path: Path
     do_toc: bool
+    do_recurse: bool
 
 
 def get_args(arglist=None):
@@ -37,6 +38,14 @@ def get_args(arglist=None):
         help="Name of the directory to scan for image files (*.png and "
         "*.jpg). Optional. If not specified, the current working directory "
         "is scanned.",
+    )
+
+    ap.add_argument(
+        "-r",
+        "--recurse",
+        dest="do_recurse",
+        action="store_true",
+        help="Recursively scan subdirectories for image files. Optional.",
     )
 
     ap.add_argument(
@@ -90,7 +99,7 @@ def get_opts(arglist=None) -> AppOptions:
     else:
         html_path = out_path / DEFAULT_OUTPUT_NAME
 
-    return AppOptions(scan_path, html_path, not args.no_list)
+    return AppOptions(scan_path, html_path, not args.no_list, args.do_recurse)
 
 
 def html_style():
@@ -251,8 +260,16 @@ def main(arglist=None):
 
     print(f"Looking for image files in '{opts.scan_path}'.")
 
-    images = list(opts.scan_path.glob("**/*.jpg"))
-    images += list(opts.scan_path.glob("**/*.png"))
+    if opts.do_recurse:
+        images = list(opts.scan_path.glob("**/*.jpg"))
+        images += list(opts.scan_path.glob("**/*.png"))
+    else:
+        images = list(opts.scan_path.glob("*.jpg"))
+        images += list(opts.scan_path.glob("*.png"))
+
+    # TODO: This is a very limited set of image types. Add more to the default
+    # set and/or add an option to specify more on the command line.
+
     images.sort()
 
     html = []
