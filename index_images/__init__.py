@@ -11,11 +11,11 @@ from typing import NamedTuple
 
 DEFAULT_OUTPUT_NAME = "images-index.html"
 
-app_name = "index_images.py"
+app_name = "index_images"
 
-app_version = "2024.01.1"
+__version__ = "2024.06.1"
 
-app_title = f"{app_name} (v{app_version})"
+app_title = f"{app_name} (v{__version__})"
 
 run_dt = datetime.now()
 
@@ -166,7 +166,7 @@ def html_tail():
         </body>
         </html>
         """
-    ).format(run_dt.strftime("%Y-%m-%d %H:%M"), app_name, app_version)
+    ).format(run_dt.strftime("%Y-%m-%d %H:%M"), app_name, __version__)
 
 
 def get_image_id(image_index: int) -> str:
