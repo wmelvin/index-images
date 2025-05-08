@@ -13,7 +13,7 @@ DEFAULT_OUTPUT_NAME = "images-index.html"
 
 app_name = "index_images"
 
-__version__ = "2024.06.2"
+__version__ = "2025.05.1"
 
 app_title = f"{app_name} (v{__version__})"
 

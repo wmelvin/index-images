@@ -10,24 +10,24 @@
 
 # Run lint, check, test, and pyproject-build
 @build: lint check test
-  pipenv run pyproject-build
+  uv build
 
 # Run pyproject-build (no lint, check, or test)
 @build-only:
-  pipenv run pyproject-build
+  uv build
 
 # ruff format --check
 @check:
-  pipenv run ruff format --check
+  uv run ruff format --check
 
 # ruff format
 @format:
-  pipenv run ruff format
+  uv run ruff format
 
 # ruff check
 @lint:
-  pipenv run ruff check
+  uv run ruff check
 
 # pytest
 @test:
-  pipenv run pytest
+  uv run pytest
