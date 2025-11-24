@@ -3,13 +3,14 @@ private/
 notes-private.txt
 
 # Python.
+.venv/
 venv/
 __pycache__/
+.pytest_cache/
+*.egg-info/
 
 # Tools config.
-.idea/
 .vscode/
 
 # App-specific.
 _0_bak/
-wipbak-list.txt

@@ -4,9 +4,7 @@
 # Remove dist and egg-info
 @clean:
   -rm dist/*
-  -rmdir dist
   -rm index_images.egg-info/*
-  -rmdir index_images.egg-info
 
 # Run lint, check, test, and pyproject-build
 @build: lint check test
