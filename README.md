@@ -1,6 +1,6 @@
 # index_images
 
-**index_images** is a Python script that scans a directory for image files and creates a HTML index of any found images. Currently the script only looks for `*.jpg` and `*.png` files.
+**index_images** is a Python script that scans a directory for image files and creates a HTML index of any found images. Currently the script only looks for `*.jpg` and `*.png` files. There is the option to also create a Markdown version of the images index.
 
 ### Mouseover Images
 
@@ -13,6 +13,8 @@ For example, if `screen_20220808_1904.png` is the name of an image included in t
 Inline JavaScript is added to the **anchor tag** to display the image when the **mouseover** event fires.
 
 Mouseover images are **not included** in the index document. They are only referenced in the JavaScript.
+
+Mouseover images are excluded from the optional Markdown file.
 
 ### Screenshots and Example Output
 
@@ -27,7 +29,8 @@ This [images-index.html](https://wmelvin.github.io/examples/index_images/images-
 ### Command-line Usage
 
 ```
-usage: index_images [-h] [-r] [-n OUT_NAME] [-d OUT_DIR] [--no-list] [dir_name]
+usage: index_images [-h] [-r] [-m] [-n OUT_NAME] [-d OUT_DIR] [--no-list]
+                    [dir_name]
 
 Create an HTML index of images.
 
@@ -40,10 +43,10 @@ options:
   -h, --help            show this help message and exit
   -r, --recurse         Recursively scan subdirectories for image files.
                         Optional.
-  -n OUT_NAME, --name OUT_NAME
-                        Name of the output HTML file. Optional. If not
+  -m, --markdown        Generate a Markdown version of the index. Optional.
+  -n, --name OUT_NAME   Name of the output HTML file. Optional. If not
                         specified, the file is named 'images-index.html'.
-  -d OUT_DIR, --out-dir OUT_DIR
+  -d, --out-dir OUT_DIR
                         Directory in which to create the output HTML file.
                         Optional. If not specified, the file is written to the
                         same directory as is scanned for image files.

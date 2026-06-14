@@ -22,6 +22,10 @@
 @format:
   uv run ruff format
 
+# Redirect 'index_images -h' to temp.txt
+@help:
+  uv run index_images -h > temp.txt
+
 # ruff check
 @lint:
   uv run ruff check

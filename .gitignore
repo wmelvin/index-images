@@ -16,3 +16,4 @@ dist/
 
 # App-specific.
 _0_bak/
+temp.*
