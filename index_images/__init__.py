@@ -14,7 +14,7 @@ DEFAULT_OUTPUT_NAME = "images-index.html"
 app_name = "index_images"
 
 #  Using calver (YYYY.0M.MICRO).
-__version__ = "2025.11.1"
+__version__ = "2026.06.1"
 
 app_title = f"{app_name} (v{__version__})"
 
@@ -252,27 +252,7 @@ def get_mouseover_image(img_path: Path, image_list: list[Path]) -> Path:
     return None
 
 
-def main(arglist=None):
-    print(f"\n{app_title}\n")
-
-    opts = get_opts(arglist)
-
-    dir_left = len(str(opts.scan_path)) + 1
-
-    print(f"Looking for image files in '{opts.scan_path}'.")
-
-    if opts.do_recurse:
-        images = list(opts.scan_path.glob("**/*.jpg"))
-        images += list(opts.scan_path.glob("**/*.png"))
-    else:
-        images = list(opts.scan_path.glob("*.jpg"))
-        images += list(opts.scan_path.glob("*.png"))
-
-    # TODO: This is a very limited set of image types. Add more to the default
-    # set and/or add an option to specify more on the command line.
-
-    images.sort()
-
+def write_html(opts: AppOptions, images: list[Path], dir_left: int):
     html = []
     html.append(html_head(title="Images Index"))
 
@@ -324,6 +304,30 @@ def main(arglist=None):
     print(f"Writing '{opts.html_path}'")
 
     opts.html_path.write_text("".join(html))
+
+
+def main(arglist=None):
+    print(f"\n{app_title}\n")
+
+    opts = get_opts(arglist)
+
+    dir_left = len(str(opts.scan_path)) + 1
+
+    print(f"Looking for image files in '{opts.scan_path}'.")
+
+    if opts.do_recurse:
+        images = list(opts.scan_path.glob("**/*.jpg"))
+        images += list(opts.scan_path.glob("**/*.png"))
+    else:
+        images = list(opts.scan_path.glob("*.jpg"))
+        images += list(opts.scan_path.glob("*.png"))
+
+    # TODO: This is a very limited set of image types. Add more to the default
+    # set and/or add an option to specify more on the command line.
+
+    images.sort()
+
+    write_html(opts, images, dir_left)
 
     return 0
 
