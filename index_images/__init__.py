@@ -26,6 +26,7 @@ class AppOptions(NamedTuple):
     html_path: Path
     do_toc: bool
     do_recurse: bool
+    do_markdown: bool
 
 
 def get_args(arglist=None):
@@ -47,6 +48,14 @@ def get_args(arglist=None):
         dest="do_recurse",
         action="store_true",
         help="Recursively scan subdirectories for image files. Optional.",
+    )
+
+    ap.add_argument(
+        "-m",
+        "--markdown",
+        dest="do_markdown",
+        action="store_true",
+        help="Generate a Markdown version of the index. Optional.",
     )
 
     ap.add_argument(
@@ -100,7 +109,9 @@ def get_opts(arglist=None) -> AppOptions:
     else:
         html_path = out_path / DEFAULT_OUTPUT_NAME
 
-    return AppOptions(scan_path, html_path, not args.no_list, args.do_recurse)
+    return AppOptions(
+        scan_path, html_path, not args.no_list, args.do_recurse, args.do_markdown
+    )
 
 
 def html_style():
@@ -306,6 +317,60 @@ def write_html(opts: AppOptions, images: list[Path], dir_left: int):
     opts.html_path.write_text("".join(html))
 
 
+def get_image_link(img_path: Path):
+    s = img_path.stem
+    s = s.replace(" ", "-")
+    s = s.replace(".", "-")
+    return s.lower()
+
+
+def write_markdown(opts, images, dir_left):
+    if not opts.do_markdown:
+        return
+    md = []
+    md.append(f"# {app_title}\n\n")
+
+    if opts.do_toc:
+        md.append("## Contents\n\n")
+        for _, p in enumerate(images):
+            if p.stem.endswith("-over") and has_base_image(p, images):
+                # No mouseover images in the Markdown version.
+                continue
+
+            img_name = p.name
+            dir_rel = str(p.parent)[dir_left:]
+            img_rel = Path(dir_rel).joinpath(img_name)
+            md.append(f"- [{img_rel}](#{get_image_link(p)})\n")
+        md.append("\n")
+
+    md.append("## Images\n\n")
+
+    prev_rel = ""
+
+    for _, p in enumerate(images):
+        if p.stem.endswith("-over") and has_base_image(p, images):
+            continue
+
+        img_name = p.name
+        dir_rel = str(p.parent)[dir_left:]
+        img_rel = Path(dir_rel).joinpath(img_name)
+
+        if dir_rel != prev_rel:
+            md.append("\n---\n\n")
+            md.append(f"\n### Folder: '{dir_rel}'\n\n")
+            prev_rel = dir_rel
+
+        md.append(f"#### {p.stem}\n\n")
+        md.append(f"![{img_name}]({img_rel})\n\n")
+        md.append(f"File name: **{img_name}**\n\n---\n\n")
+
+    out_path = opts.html_path.with_suffix(".md")
+
+    print(f"Writing '{out_path}'")
+
+    out_path.write_text("".join(md))
+
+
 def main(arglist=None):
     print(f"\n{app_title}\n")
 
@@ -328,6 +393,8 @@ def main(arglist=None):
     images.sort()
 
     write_html(opts, images, dir_left)
+
+    write_markdown(opts, images, dir_left)
 
     return 0
 

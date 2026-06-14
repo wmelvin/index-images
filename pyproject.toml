@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = 'Command-line utility scans a directory for image files and creates a HTML index of found images.'
 requires-python = ">=3.10"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
 keywords = [ "image index", "html", "documentation tool" ]
 authors = [
   { name = "Bill Melvin", email = "bill@billmelvin.com" },

@@ -115,3 +115,22 @@ def test_scan_images_with_recurse(
     out_html = out_file.read_text()
     assert "fake-1.jpg" in out_html
     assert "fake-2.jpg" in out_html
+
+
+@pytest.mark.parametrize("markdown_arg", ["-m", "--markdown"])
+def test_creates_markdown_file(
+    fake_image_and_output_paths: tuple[Path, Path], markdown_arg: str
+):
+    img_path, out_path = fake_image_and_output_paths
+    args = [str(img_path), "-d", str(out_path), markdown_arg]
+    index_images.main(args)
+
+    html_file = out_path / index_images.DEFAULT_OUTPUT_NAME
+    assert html_file.exists()
+
+    md_file = (out_path / index_images.DEFAULT_OUTPUT_NAME).with_suffix(".md")
+    assert md_file.exists()
+
+    out_md = md_file.read_text()
+    assert "fake-1.jpg" in out_md
+    assert "fake-2.jpg" not in out_md
