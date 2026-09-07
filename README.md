@@ -29,7 +29,8 @@ This [images-index.html](https://wmelvin.github.io/examples/index_images/images-
 ### Command-line Usage
 
 ```
-usage: index_images [-h] [-r] [-m] [-n OUT_NAME] [-d OUT_DIR] [--no-list]
+usage: index_images [-h] [-r] [-m] [-n OUT_NAME] [-d OUT_DIR] [-t TITLE]
+                    [--no-list] [-b]
                     [dir_name]
 
 Create an HTML index of images.
@@ -50,6 +51,9 @@ options:
                         Directory in which to create the output HTML file.
                         Optional. If not specified, the file is written to the
                         same directory as is scanned for image files.
+  -t, --title TITLE     Title for HTML file. Default is 'Images'.
   --no-list             Do not include a Contents section listing links to
                         each image.
+  -b, --bare            Bare HTML file: Same as --no-list, but also skips
+                        headings, file names, and footer.
 ```

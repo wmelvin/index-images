@@ -134,3 +134,49 @@ def test_creates_markdown_file(
     out_md = md_file.read_text()
     assert "fake-1.jpg" in out_md
     assert "fake-2.jpg" not in out_md
+
+
+@pytest.mark.parametrize("bare_arg", ["-b", "--bare"])
+def test_bare_option(fake_image_and_output_paths: tuple[Path, Path], bare_arg: str):
+    img_path, out_path = fake_image_and_output_paths
+    args = [str(img_path), "-d", str(out_path), "-r", bare_arg]
+
+    index_images.main(args)
+
+    out_file = out_path / index_images.DEFAULT_OUTPUT_NAME
+    assert out_file.exists()
+
+    out_html = out_file.read_text().lower()
+    assert "fake-1.jpg" in out_html
+    assert "fake-2.jpg" in out_html
+
+    assert "<h1>" not in out_html
+    assert "<h2>" not in out_html
+    assert "<hr>" not in out_html
+    assert "<p>" not in out_html
+
+
+@pytest.mark.parametrize(
+    "title_arg,title_val", [("", ""), ("-t", "My-Title"), ("--title", "My-Title")]
+)
+def test_title_option(
+    fake_image_and_output_paths: tuple[Path, Path], title_arg: str, title_val: str
+):
+    img_path, out_path = fake_image_and_output_paths
+    args = [str(img_path), "-d", str(out_path), "-r"]
+    if title_arg:
+        args.extend([title_arg, title_val])
+
+    index_images.main(args)
+
+    out_file = out_path / index_images.DEFAULT_OUTPUT_NAME
+    assert out_file.exists()
+
+    out_html = out_file.read_text()
+    assert "fake-1.jpg" in out_html
+    assert "fake-2.jpg" in out_html
+
+    if title_arg:
+        assert f"<title>{title_val}</title>" in out_html
+    else:
+        assert "<title>Images</title>" in out_html

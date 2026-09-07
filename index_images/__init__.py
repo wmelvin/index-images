@@ -14,7 +14,7 @@ DEFAULT_OUTPUT_NAME = "images-index.html"
 app_name = "index_images"
 
 #  Using calver (YYYY.0M.MICRO).
-__version__ = "2026.06.1"
+__version__ = "2026.09.2-dev0"
 
 app_title = f"{app_name} (v{__version__})"
 
@@ -23,9 +23,13 @@ run_dt = datetime.now()
 
 class AppOptions(NamedTuple):
     scan_path: Path
-    html_path: Path
-    do_toc: bool
     do_recurse: bool
+    html_path: Path
+    title: str
+    do_headings: bool
+    do_toc: bool
+    do_filename: bool
+    do_footer: bool
     do_markdown: bool
 
 
@@ -78,10 +82,27 @@ def get_args(arglist=None):
     )
 
     ap.add_argument(
+        "-t",
+        "--title",
+        dest="title",
+        action="store",
+        help="Title for HTML file. Default is 'Images'.",
+    )
+
+    ap.add_argument(
         "--no-list",
         action="store_true",
         dest="no_list",
         help="Do not include a Contents section listing links to each image.",
+    )
+
+    ap.add_argument(
+        "-b",
+        "--bare",
+        action="store_true",
+        dest="do_bare",
+        help="Bare HTML file: Same as --no-list, but also skips headings, file names, "
+        "and footer.",
     )
 
     return ap.parse_args(arglist)
@@ -109,8 +130,29 @@ def get_opts(arglist=None) -> AppOptions:
     else:
         html_path = out_path / DEFAULT_OUTPUT_NAME
 
+    title = args.title if args.title else "Images"
+
+    if args.do_bare:
+        do_toc = False
+        do_headings = False
+        do_filename = False
+        do_footer = False
+    else:
+        do_toc = not args.no_list
+        do_headings = True
+        do_filename = True
+        do_footer = True
+
     return AppOptions(
-        scan_path, html_path, not args.no_list, args.do_recurse, args.do_markdown
+        scan_path,
+        args.do_recurse,
+        html_path,
+        title,
+        do_headings,
+        do_toc,
+        do_filename,
+        do_footer,
+        args.do_markdown,
     )
 
 
@@ -171,49 +213,58 @@ def html_head(title):
         </head>
         <body>
         <div class="container">
-        <h1>{0}</h1>
         """
     ).format(title, html_style())
 
 
-def html_tail():
+def html_tail(do_footer: bool):
+    if do_footer:
+        return dedent(
+            """
+            <div id="footer">
+            <hr>
+            <strong>Created {0}</strong> by {1} version {2}
+            </div>
+            </div>  <!-- container -->
+            </body>
+            </html>
+            """
+        ).format(run_dt.strftime("%Y-%m-%d %H:%M"), app_name, __version__)
     return dedent(
         """
-        <div id="footer">
-          <hr>
-          <strong>Created {0}</strong> by {1} version {2}
-        </div>
         </div>  <!-- container -->
         </body>
         </html>
         """
-    ).format(run_dt.strftime("%Y-%m-%d %H:%M"), app_name, __version__)
+    )
 
 
 def get_image_id(image_index: int) -> str:
     return f"img{image_index}"
 
 
-def html_img_div(img_name: str, img_rel: str, img_index: int) -> str:
+def html_img_div(opts: AppOptions, img_name: str, img_rel: str, img_index: int) -> str:
     img_id = get_image_id(img_index)
 
     tag = f'<img id="{img_id}"\nsrc="{img_rel}"\n'
     tag += f'alt="Image file named {img_name}">'
+    p_fn = f"<p>{img_rel}</p>" if opts.do_filename else ""
 
     return dedent(
-        """
+        f"""
         <div class="img-outer">
         <div class="img-inner">
-        <p>{0}</p>
-        <a href="{0}">{1}</a>
-        <p>{0}</p>
+        {p_fn}
+        <a href="{img_rel}">{tag}</a>
+        {p_fn}
         </div>
         </div>
         """
-    ).format(img_rel, tag)
+    )
 
 
-def html_img_div_w_mouseover(
+def html_img_div_w_mouseover(  # noqa: PLR0913
+    opts: AppOptions,
     img_name: str,
     img_rel: str,
     img_index: int,
@@ -227,23 +278,24 @@ def html_img_div_w_mouseover(
 
     tag = f'<img id="{img_id}"\nsrc="{img_rel}"\n'
     tag += f'alt="Image file named {img_name}">'
+    p_fn = f"<p>{img_rel}</p>" if opts.do_filename else ""
 
     return dedent(
-        """
+        f"""
         <div class="img-outer">
         <div class="img-inner">
-        <p>{0}</p>
-        <a href="{0}"
+        {p_fn}
+        <a href="{img_rel}"
         onmouseover="if (document.images)
-          document.getElementById('{2}').src='{3}';"
+          document.getElementById('{img_id}').src='{over_rel}';"
         onmouseout="if (document.images)
-          document.getElementById('{2}').src='{0}';">
-        {1}</a>
-        <p>{0}</p>
+          document.getElementById('{img_id}').src='{img_rel}';">
+        {tag}</a>
+        {p_fn}
         </div>
         </div>
         """
-    ).format(img_rel, tag, img_id, over_rel)
+    )
 
 
 def has_base_image(img_path: Path, image_list: list[Path]) -> bool:
@@ -265,7 +317,9 @@ def get_mouseover_image(img_path: Path, image_list: list[Path]) -> Path:
 
 def write_html(opts: AppOptions, images: list[Path], dir_left: int):
     html = []
-    html.append(html_head(title="Images Index"))
+    html.append(html_head(title=opts.title))
+    if opts.do_headings:
+        html.append(f"<h1>{opts.title}</h1>")
 
     if opts.do_toc:
         html.append("<h2>Contents</h2>\n")
@@ -280,7 +334,8 @@ def write_html(opts: AppOptions, images: list[Path], dir_left: int):
             html.append(f'<li><a href="#{img_id}">{img_rel}</a></li>\n')
         html.append("</ol>\n")
 
-    html.append("<h2>Images</h2>\n")
+    if opts.do_headings:
+        html.append("<h2>Images</h2>\n")
 
     prev_rel = ""
 
@@ -297,20 +352,23 @@ def write_html(opts: AppOptions, images: list[Path], dir_left: int):
         img_rel = Path(dir_rel).joinpath(img_name)
 
         if dir_rel != prev_rel:
-            html.append("<p>&nbsp;</p>\n<hr>\n")
-            html.append(f"\n<h3>Folder: '{dir_rel}'</h3>\n")
+            if opts.do_headings:
+                html.append("<p>&nbsp;</p>\n<hr>\n")
+                html.append(f"\n<h3>Folder: '{dir_rel}'</h3>\n")
             prev_rel = dir_rel
 
         mouseover_img = get_mouseover_image(p, images)
 
         if mouseover_img is None:
-            html.append(html_img_div(img_name, img_rel, i))
+            html.append(html_img_div(opts, img_name, img_rel, i))
         else:
             html.append(
-                html_img_div_w_mouseover(img_name, img_rel, i, mouseover_img, dir_left)
+                html_img_div_w_mouseover(
+                    opts, img_name, img_rel, i, mouseover_img, dir_left
+                )
             )
 
-    html.append(html_tail())
+    html.append(html_tail(opts.do_footer))
 
     print(f"Writing '{opts.html_path}'")
 
