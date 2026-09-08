@@ -14,7 +14,7 @@ DEFAULT_OUTPUT_NAME = "images-index.html"
 app_name = "index_images"
 
 #  Using calver (YYYY.0M.MICRO).
-__version__ = "2026.09.2-dev0"
+__version__ = "2026.09.2"
 
 app_title = f"{app_name} (v{__version__})"
 
@@ -189,11 +189,16 @@ def html_style():
             background-color: #e8effc;
             margin: auto;
             padding: 0.5rem;
-            width: 80%;
+            width: 90%;
         }
         #footer {
             font-size: x-small;
             margin-top: 2rem;
+        }
+        @media print {
+            .img-outer {
+                break-after: page;
+            }
         }
     """
     return s.lstrip("\n").rstrip()
