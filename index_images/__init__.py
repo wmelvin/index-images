@@ -14,7 +14,7 @@ DEFAULT_OUTPUT_NAME = "images-index.html"
 app_name = "index_images"
 
 #  Using calver (YYYY.0M.MICRO).
-__version__ = "2026.09.3-dev0"
+__version__ = "2026.09.3"
 
 app_title = f"{app_name} (v{__version__})"
 
@@ -156,7 +156,7 @@ def get_opts(arglist=None) -> AppOptions:
     )
 
 
-def html_style():
+def html_style_full():
     s = """
         body { font-family: sans-serif; }
         h1 { color: gray; }
@@ -204,7 +204,45 @@ def html_style():
     return s.lstrip("\n").rstrip()
 
 
-def html_head(title):
+def html_style_bare():
+    s = """
+        body { font-family: sans-serif; }
+        a:link, a:visited {
+            color: #00248F;
+            text-decoration: none;
+        }
+        :link:hover,:visited:hover {
+            color: #B32400;
+            text-decoration: underline;
+        }
+        img {
+            width: 100%;
+            height: auto;
+        }
+        .container { margin: 0.3rem; }
+        .img-outer {
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 1rem;
+            padding: 1rem;
+        }
+        .img-inner {
+            padding: 0.5rem;
+            width: 100%;
+        }
+        #footer {
+            font-size: x-small;
+        }
+        @media print {
+            .img-outer {
+                break-after: page;
+            }
+        }
+    """
+    return s.lstrip("\n").rstrip()
+
+
+def html_head(title, html_style):
     return dedent(
         """
         <!DOCTYPE html>
@@ -258,8 +296,9 @@ def html_img_div(
 ) -> str:
     img_id = get_image_id(img_index)
 
-    tag = f'<img id="{img_id}"\nsrc="{img_path_rel}"\n'
+    tag = f'<img id="{img_id}" src="{img_path_rel}" '
     tag += f'alt="Image file named {img_name}">'
+
     p_fn = f"<p>{img_name_rel}</p>" if opts.do_filename else ""
 
     return dedent(
@@ -285,8 +324,9 @@ def html_img_div_w_mouseover(  # noqa: PLR0913
 ) -> str:
     img_id = get_image_id(img_index)
 
-    tag = f'<img id="{img_id}"\nsrc="{img_path_rel}"\n'
+    tag = f'<img id="{img_id}" src="{img_path_rel}" '
     tag += f'alt="Image file named {img_name}">'
+
     p_fn = f"<p>{img_name_rel}</p>" if opts.do_filename else ""
 
     return dedent(
@@ -326,7 +366,8 @@ def get_mouseover_image(img_path: Path, image_list: list[Path]) -> Path:
 
 def write_html(opts: AppOptions, images: list[Path], dir_left: int):
     html = []
-    html.append(html_head(title=opts.title))
+    style = html_style_full if opts.do_headings else html_style_bare
+    html.append(html_head(title=opts.title, html_style=style))
     if opts.do_headings:
         html.append(f"<h1>{opts.title}</h1>")
 
