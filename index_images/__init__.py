@@ -215,6 +215,7 @@ def html_head(title):
             <style>
         {1}
             </style>
+            <link rel="stylesheet" type="text/css" href="style.css">
         </head>
         <body>
         <div class="container">
