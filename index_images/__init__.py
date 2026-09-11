@@ -248,19 +248,25 @@ def get_image_id(image_index: int) -> str:
     return f"img{image_index}"
 
 
-def html_img_div(opts: AppOptions, img_name: str, img_rel: str, img_index: int) -> str:
+def html_img_div(
+    opts: AppOptions,
+    img_name: str,
+    img_name_rel: str,
+    img_path_rel: Path,
+    img_index: int,
+) -> str:
     img_id = get_image_id(img_index)
 
-    tag = f'<img id="{img_id}"\nsrc="{img_rel}"\n'
+    tag = f'<img id="{img_id}"\nsrc="{img_path_rel}"\n'
     tag += f'alt="Image file named {img_name}">'
-    p_fn = f"<p>{img_rel}</p>" if opts.do_filename else ""
+    p_fn = f"<p>{img_name_rel}</p>" if opts.do_filename else ""
 
     return dedent(
         f"""
         <div class="img-outer">
         <div class="img-inner">
         {p_fn}
-        <a href="{img_rel}">{tag}</a>
+        <a href="{img_path_rel}">{tag}</a>
         {p_fn}
         </div>
         </div>
@@ -271,30 +277,27 @@ def html_img_div(opts: AppOptions, img_name: str, img_rel: str, img_index: int) 
 def html_img_div_w_mouseover(  # noqa: PLR0913
     opts: AppOptions,
     img_name: str,
-    img_rel: str,
+    img_name_rel: str,
+    img_path_rel: Path,
+    over_path_rel: Path,
     img_index: int,
-    mouseover_img: Path,
-    dir_left: int,
 ) -> str:
-    over_name = mouseover_img.name
-    dir_rel = str(mouseover_img.parent)[dir_left:]
-    over_rel = Path(dir_rel).joinpath(over_name)
     img_id = get_image_id(img_index)
 
-    tag = f'<img id="{img_id}"\nsrc="{img_rel}"\n'
+    tag = f'<img id="{img_id}"\nsrc="{img_path_rel}"\n'
     tag += f'alt="Image file named {img_name}">'
-    p_fn = f"<p>{img_rel}</p>" if opts.do_filename else ""
+    p_fn = f"<p>{img_name_rel}</p>" if opts.do_filename else ""
 
     return dedent(
         f"""
         <div class="img-outer">
         <div class="img-inner">
         {p_fn}
-        <a href="{img_rel}"
+        <a href="{img_path_rel}"
         onmouseover="if (document.images)
-          document.getElementById('{img_id}').src='{over_rel}';"
+          document.getElementById('{img_id}').src='{over_path_rel}';"
         onmouseout="if (document.images)
-          document.getElementById('{img_id}').src='{img_rel}';">
+          document.getElementById('{img_id}').src='{img_path_rel}';">
         {tag}</a>
         {p_fn}
         </div>
@@ -353,8 +356,12 @@ def write_html(opts: AppOptions, images: list[Path], dir_left: int):
             continue
 
         img_name = p.name
+
         dir_rel = str(p.parent)[dir_left:]
-        img_rel = Path(dir_rel).joinpath(img_name)
+
+        img_name_rel = str(Path(dir_rel).joinpath(img_name))
+
+        img_path_rel = p.relative_to(opts.html_path.parent, walk_up=True)
 
         if dir_rel != prev_rel:
             if opts.do_headings:
@@ -364,14 +371,22 @@ def write_html(opts: AppOptions, images: list[Path], dir_left: int):
 
         mouseover_img = get_mouseover_image(p, images)
 
-        if mouseover_img is None:
-            html.append(html_img_div(opts, img_name, img_rel, i))
-        else:
+        if mouseover_img:
+            over_path_rel = mouseover_img.relative_to(
+                opts.html_path.parent, walk_up=True
+            )
             html.append(
                 html_img_div_w_mouseover(
-                    opts, img_name, img_rel, i, mouseover_img, dir_left
+                    opts,
+                    img_name,
+                    img_name_rel,
+                    img_path_rel,
+                    over_path_rel,
+                    i,
                 )
             )
+        else:
+            html.append(html_img_div(opts, img_name, img_name_rel, img_path_rel, i))
 
     html.append(html_tail(opts.do_footer))
 
@@ -443,6 +458,9 @@ def main(arglist=None):
 
     print(f"Looking for image files in '{opts.scan_path}'.")
 
+    # TODO: This is a very limited set of image types. Add more to the default
+    # set and/or add an option to specify more on the command line.
+
     if opts.do_recurse:
         images = list(opts.scan_path.glob("**/*.jpg"))
         images += list(opts.scan_path.glob("**/*.png"))
@@ -450,10 +468,7 @@ def main(arglist=None):
         images = list(opts.scan_path.glob("*.jpg"))
         images += list(opts.scan_path.glob("*.png"))
 
-    # TODO: This is a very limited set of image types. Add more to the default
-    # set and/or add an option to specify more on the command line.
-
-    images.sort()
+    images.sort(key=lambda item: [str(item.parent), str(item.name)])
 
     write_html(opts, images, dir_left)
 

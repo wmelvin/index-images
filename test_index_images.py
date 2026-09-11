@@ -18,11 +18,20 @@ def make_image_and_output_paths(tmp_path: Path) -> tuple[Path, Path]:
     img_path_1: Path = tmp_path / "images"
     img_path_1.mkdir()
     _make_image((img_path_1 / "test-1.jpg"), (300, 300), (255, 0, 0))
-    _make_image((img_path_1 / "test-2.jpg"), (400, 400), (0, 255, 0))
 
     img_path_2: Path = img_path_1 / "more_images_subdir"
     img_path_2.mkdir()
-    _make_image((img_path_2 / "test-3.jpg"), (600, 600), (0, 0, 255))
+    _make_image((img_path_2 / "test-2.jpg"), (300, 300), (255, 0, 255))
+    _make_image((img_path_2 / "test-2-over.jpg"), (300, 300), (128, 0, 128))
+
+    _make_image((img_path_1 / "test-3.jpg"), (400, 400), (0, 255, 0))
+
+    img_path_3: Path = img_path_2 / "another_level"
+    img_path_3.mkdir()
+
+    _make_image((img_path_3 / "test-4.jpg"), (200, 200), (0, 255, 255))
+
+    _make_image((img_path_1 / "test-5.jpg"), (200, 200), (0, 0, 255))
 
     out_path = tmp_path / "output"
     out_path.mkdir()
@@ -108,7 +117,7 @@ def test_scan_images_wo_recurse(make_image_and_output_paths: tuple[Path, Path]):
 
     out_html = out_file.read_text()
     assert "test-1.jpg" in out_html
-    assert "test-3.jpg" not in out_html
+    assert "test-2.jpg" not in out_html
 
 
 @pytest.mark.parametrize("recurse_arg", ["-r", "--recurse"])
@@ -143,7 +152,7 @@ def test_creates_markdown_file(
 
     out_md = md_file.read_text()
     assert "test-1.jpg" in out_md
-    assert "test-3.jpg" not in out_md
+    assert "test-2.jpg" not in out_md
 
 
 @pytest.mark.parametrize("bare_arg", ["-b", "--bare"])
@@ -192,3 +201,45 @@ def test_title_option(
         assert f"<title>{title_val}</title>" in out_html
     else:
         assert "<title>Images</title>" in out_html
+
+
+def test_image_paths_relative(make_image_and_output_paths: tuple[Path, Path]):
+    img_path, _ = make_image_and_output_paths
+
+    #  No output path in args.
+    args = [str(img_path), "-r"]
+
+    index_images.main(args)
+
+    out_file = img_path / index_images.DEFAULT_OUTPUT_NAME
+    assert out_file.exists()
+
+    out_html = out_file.read_text().lower()
+    #  Anchor tags for images should have relative path.
+    assert 'href="test-1.jpg"' in out_html
+    assert 'href="test-3.jpg"' in out_html
+    assert 'href="more_images_subdir/test-2.jpg"' in out_html
+    #  Image names in text should have subdir, but not relative path.
+    assert "<p>test-1.jpg</p>" in out_html
+    assert "<p>more_images_subdir/test-2.jpg</p>" in out_html
+
+
+def test_image_paths_relative_to_output(make_image_and_output_paths: tuple[Path, Path]):
+    img_path, out_path = make_image_and_output_paths
+
+    #  Has output path in args.
+    args = [str(img_path), "-d", str(out_path), "-r"]
+
+    index_images.main(args)
+
+    out_file = out_path / index_images.DEFAULT_OUTPUT_NAME
+    assert out_file.exists()
+
+    out_html = out_file.read_text().lower()
+    #  Anchor tags for images should have relative path.
+    assert 'href="../images/test-1.jpg"' in out_html
+    assert 'href="../images/test-3.jpg"' in out_html
+    assert 'href="../images/more_images_subdir/test-2.jpg"' in out_html
+    #  Image names in text should have subdir, but not relative path.
+    assert "<p>test-1.jpg</p>" in out_html
+    assert "<p>more_images_subdir/test-2.jpg</p>" in out_html
