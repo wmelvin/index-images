@@ -3,20 +3,30 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from PIL import Image
 
 import index_images
 
 
+def _make_image(iamge_path: Path, canvas_size: tuple[int, int], bg_color):
+    img = Image.new("RGB", canvas_size, bg_color)
+    img.save(iamge_path)
+
+
 @pytest.fixture()
-def fake_image_and_output_paths(tmp_path: Path) -> tuple[Path, Path]:
+def make_image_and_output_paths(tmp_path: Path) -> tuple[Path, Path]:
     img_path_1: Path = tmp_path / "images"
     img_path_1.mkdir()
-    (img_path_1 / "fake-1.jpg").write_text("fake image 1")
-    img_path_2: Path = img_path_1 / "more"
+    _make_image((img_path_1 / "test-1.jpg"), (300, 300), (255, 0, 0))
+    _make_image((img_path_1 / "test-2.jpg"), (400, 400), (0, 255, 0))
+
+    img_path_2: Path = img_path_1 / "more_images_subdir"
     img_path_2.mkdir()
-    (img_path_2 / "fake-2.jpg").write_text("fake image 2")
+    _make_image((img_path_2 / "test-3.jpg"), (600, 600), (0, 0, 255))
+
     out_path = tmp_path / "output"
     out_path.mkdir()
+
     return img_path_1, out_path
 
 
@@ -88,8 +98,8 @@ def test_opts_out_dir_not_exist(tmp_path, capsys):
     assert "not found" in captured.err
 
 
-def test_scan_images_wo_recurse(fake_image_and_output_paths: tuple[Path, Path]):
-    img_path, out_path = fake_image_and_output_paths
+def test_scan_images_wo_recurse(make_image_and_output_paths: tuple[Path, Path]):
+    img_path, out_path = make_image_and_output_paths
     args = [str(img_path), "-d", str(out_path)]
     index_images.main(args)
 
@@ -97,15 +107,15 @@ def test_scan_images_wo_recurse(fake_image_and_output_paths: tuple[Path, Path]):
     assert out_file.exists()
 
     out_html = out_file.read_text()
-    assert "fake-1.jpg" in out_html
-    assert "fake-2.jpg" not in out_html
+    assert "test-1.jpg" in out_html
+    assert "test-3.jpg" not in out_html
 
 
 @pytest.mark.parametrize("recurse_arg", ["-r", "--recurse"])
 def test_scan_images_with_recurse(
-    fake_image_and_output_paths: tuple[Path, Path], recurse_arg: str
+    make_image_and_output_paths: tuple[Path, Path], recurse_arg: str
 ):
-    img_path, out_path = fake_image_and_output_paths
+    img_path, out_path = make_image_and_output_paths
     args = [str(img_path), "-d", str(out_path), recurse_arg]
     index_images.main(args)
 
@@ -113,15 +123,15 @@ def test_scan_images_with_recurse(
     assert out_file.exists()
 
     out_html = out_file.read_text()
-    assert "fake-1.jpg" in out_html
-    assert "fake-2.jpg" in out_html
+    assert "test-1.jpg" in out_html
+    assert "test-2.jpg" in out_html
 
 
 @pytest.mark.parametrize("markdown_arg", ["-m", "--markdown"])
 def test_creates_markdown_file(
-    fake_image_and_output_paths: tuple[Path, Path], markdown_arg: str
+    make_image_and_output_paths: tuple[Path, Path], markdown_arg: str
 ):
-    img_path, out_path = fake_image_and_output_paths
+    img_path, out_path = make_image_and_output_paths
     args = [str(img_path), "-d", str(out_path), markdown_arg]
     index_images.main(args)
 
@@ -132,13 +142,13 @@ def test_creates_markdown_file(
     assert md_file.exists()
 
     out_md = md_file.read_text()
-    assert "fake-1.jpg" in out_md
-    assert "fake-2.jpg" not in out_md
+    assert "test-1.jpg" in out_md
+    assert "test-3.jpg" not in out_md
 
 
 @pytest.mark.parametrize("bare_arg", ["-b", "--bare"])
-def test_bare_option(fake_image_and_output_paths: tuple[Path, Path], bare_arg: str):
-    img_path, out_path = fake_image_and_output_paths
+def test_bare_option(make_image_and_output_paths: tuple[Path, Path], bare_arg: str):
+    img_path, out_path = make_image_and_output_paths
     args = [str(img_path), "-d", str(out_path), "-r", bare_arg]
 
     index_images.main(args)
@@ -147,8 +157,8 @@ def test_bare_option(fake_image_and_output_paths: tuple[Path, Path], bare_arg: s
     assert out_file.exists()
 
     out_html = out_file.read_text().lower()
-    assert "fake-1.jpg" in out_html
-    assert "fake-2.jpg" in out_html
+    assert "test-1.jpg" in out_html
+    assert "test-2.jpg" in out_html
 
     assert "<h1>" not in out_html
     assert "<h2>" not in out_html
@@ -160,21 +170,23 @@ def test_bare_option(fake_image_and_output_paths: tuple[Path, Path], bare_arg: s
     "title_arg,title_val", [("", ""), ("-t", "My-Title"), ("--title", "My-Title")]
 )
 def test_title_option(
-    fake_image_and_output_paths: tuple[Path, Path], title_arg: str, title_val: str
+    make_image_and_output_paths: tuple[Path, Path], title_arg: str, title_val: str
 ):
-    img_path, out_path = fake_image_and_output_paths
-    args = [str(img_path), "-d", str(out_path), "-r"]
+    img_path, _ = make_image_and_output_paths
+    args = [str(img_path), "-r"]
     if title_arg:
         args.extend([title_arg, title_val])
 
     index_images.main(args)
 
-    out_file = out_path / index_images.DEFAULT_OUTPUT_NAME
+    #  By default, output should be in the same directory as the images.
+    out_file = img_path / index_images.DEFAULT_OUTPUT_NAME
     assert out_file.exists()
 
     out_html = out_file.read_text()
-    assert "fake-1.jpg" in out_html
-    assert "fake-2.jpg" in out_html
+    assert "test-1.jpg" in out_html
+    assert "test-2.jpg" in out_html
+    assert "test-3.jpg" in out_html
 
     if title_arg:
         assert f"<title>{title_val}</title>" in out_html

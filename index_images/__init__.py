@@ -14,7 +14,7 @@ DEFAULT_OUTPUT_NAME = "images-index.html"
 app_name = "index_images"
 
 #  Using calver (YYYY.0M.MICRO).
-__version__ = "2026.09.2"
+__version__ = "2026.09.3-dev0"
 
 app_title = f"{app_name} (v{__version__})"
 
