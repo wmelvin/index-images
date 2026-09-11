@@ -1,0 +1,8 @@
+env_list = ["3.10", "3.11", "3.12", "3.13", "3.14"]
+requires = ["tox-uv"]
+
+[env_run_base]
+description = "Run tests with pytest"
+runner = "uv-venv-runner"
+dependency_groups = ["dev"]
+commands = [["pytest", "-vv"]]

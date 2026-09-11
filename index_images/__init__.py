@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -403,7 +404,7 @@ def write_html(opts: AppOptions, images: list[Path], dir_left: int):
 
         img_name_rel = str(Path(dir_rel).joinpath(img_name))
 
-        img_path_rel = p.relative_to(opts.html_path.parent, walk_up=True)
+        img_path_rel = os.path.relpath(p, opts.html_path.parent)
 
         if dir_rel != prev_rel:
             if opts.do_headings:
@@ -414,9 +415,7 @@ def write_html(opts: AppOptions, images: list[Path], dir_left: int):
         mouseover_img = get_mouseover_image(p, images)
 
         if mouseover_img:
-            over_path_rel = mouseover_img.relative_to(
-                opts.html_path.parent, walk_up=True
-            )
+            over_path_rel = os.path.relpath(mouseover_img, opts.html_path.parent)
             html.append(
                 html_img_div_w_mouseover(
                     opts,

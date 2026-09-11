@@ -33,3 +33,7 @@
 # pytest
 @test:
   uv run pytest
+
+# Run 'tox' to test with multiple Python versions
+@tox:
+  uv run tox
