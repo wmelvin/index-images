@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -243,3 +245,13 @@ def test_image_paths_relative_to_output(make_image_and_output_paths: tuple[Path,
     #  Image names in text should have subdir, but not relative path.
     assert "<p>test-1.jpg</p>" in out_html
     assert "<p>more_images_subdir/test-2.jpg</p>" in out_html
+
+
+def test_write_version(tmp_path: Path):
+    #  Make a temporary log of the Python version running the test.
+    #  Used to confirm tox-uv is running the expected version.
+    #  Write to the temporary directory above the individual test runs.
+    ver_file = tmp_path.parent.parent / "tests-python-version.txt"
+    with ver_file.open("a") as f:
+        f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {sys.version}\n")
+    assert ver_file.exists()
