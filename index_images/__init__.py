@@ -15,7 +15,7 @@ DEFAULT_OUTPUT_NAME = "images-index.html"
 app_name = "index_images"
 
 #  Using calver (YYYY.0M.MICRO).
-__version__ = "2026.09.4"
+__version__ = "2026.10.1"
 
 app_title = f"{app_name} (v{__version__})"
 
@@ -315,7 +315,7 @@ def html_img_div(
     )
 
 
-def html_img_div_w_mouseover(  # noqa: PLR0913
+def html_img_div_w_mouseover(  # noqa: PLR0913, PLR0917
     opts: AppOptions,
     img_name: str,
     img_name_rel: str,

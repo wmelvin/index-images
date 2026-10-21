@@ -10,9 +10,9 @@ from PIL import Image
 import index_images
 
 
-def _make_image(iamge_path: Path, canvas_size: tuple[int, int], bg_color):
+def _make_image(image_path: Path, canvas_size: tuple[int, int], bg_color):
     img = Image.new("RGB", canvas_size, bg_color)
-    img.save(iamge_path)
+    img.save(image_path)
 
 
 @pytest.fixture()
