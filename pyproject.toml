@@ -59,10 +59,10 @@ ignore = ["ISC001"]
 
 [dependency-groups]
 dev = [
-    "build>=1.2.2.post1",
-    "pillow>=12.3.0",
-    "pytest>=8.3.5",
-    "ruff>=0.11.8",
-    "tox>=4.61.4",
-    "tox-uv>=1.36.0",
+    "build>=1.6.1",
+    "pillow>=13.0.0",
+    "pytest>=9.2.0",
+    "ruff>=0.17.4",
+    "tox>=4.67.13",
+    "tox-uv>=1.37.7",
 ]
